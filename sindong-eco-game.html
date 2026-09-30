@@ -32,11 +32,22 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .top h1{font-size:clamp(26px,4.4vw,38px);line-height:1.1}
 .top h1 em{font-style:normal;color:var(--hoodie-deep)}
 .status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex:1;justify-content:flex-end}
-.gauge{min-width:190px;flex:1;max-width:320px}
-.gauge-label{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--ink-soft)}
-.gauge-label b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
-.gauge-track{height:14px;border-radius:99px;background:#d6ddd3;border:2px solid var(--ink);overflow:hidden;margin-top:3px}
-.gauge-fill{height:100%;width:0;background:linear-gradient(90deg,var(--leaf),var(--hoodie));transition:width .9s cubic-bezier(.3,1.4,.5,1)}
+.hbadges{display:flex;flex-direction:column;gap:4px}
+.hb-label{font-size:14px;color:var(--ink-soft)}
+.hb-label b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
+.hb-row{display:flex;gap:6px}
+.bdg{position:relative;flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:2.5px solid var(--ink);background:#e4e8e5;font-size:19px;line-height:1}
+.bdg.none .bi{filter:grayscale(1);opacity:.28}
+.bdg.silver{background:#eef2f4;box-shadow:inset 0 0 0 4px #b3c0c6}
+.bdg.gold{background:#fff3c4;box-shadow:inset 0 0 0 4px var(--hoodie)}
+.bdg .st{position:absolute;top:-9px;right:-7px;font-size:17px;color:#e0a100;text-shadow:0 0 3px #fff,0 0 3px #fff}
+.bdg.lg{width:60px;height:60px;font-size:30px;border-width:3px}
+.bdg.lg .st{font-size:24px;top:-12px;right:-9px}
+.bdg.new{animation:grow .6s cubic-bezier(.3,1.6,.5,1)}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 8px}
+.bcell{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-size:13.5px;line-height:1.3}
+.bcell.none{color:var(--ink-soft)}
+.got{display:flex;align-items:center;gap:12px}
 .tools{display:flex;gap:6px}
 .chip-btn{border:2px solid var(--ink);background:var(--paper);border-radius:99px;padding:5px 11px;font-size:14px;white-space:nowrap}
 .chip-btn.warn{background:var(--rust);color:#fff;border-color:var(--rust)}
@@ -44,7 +55,8 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .mbar{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .mbar button{flex:none;display:flex;align-items:center;gap:6px;border:2px solid var(--ink);background:var(--paper);border-radius:99px;padding:4px 12px 4px 4px;font-family:var(--display);font-size:16px}
 .mbar .b{width:24px;height:24px;border-radius:50%;background:var(--hoodie);border:2px solid var(--ink);display:grid;place-items:center;font-size:14px}
-.mbar button.done .b{background:var(--leaf);color:#fff}
+.mbar button.done .b{background:#b3c0c6}
+.mbar button.perfect .b{background:var(--hoodie);color:#8a5a00}
 .mbar button.here{background:#fff3c4}
 
 .stage{position:relative;height:clamp(320px,44vw,470px);max-height:62vh;min-height:280px;border:3px solid var(--ink);border-radius:20px;overflow:hidden;background:#cfc6b0;box-shadow:0 5px 0 var(--ink);touch-action:manipulation;user-select:none;-webkit-user-select:none}
@@ -181,9 +193,9 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
       <h1>신동읍 <em>환경 구조대</em></h1>
     </div>
     <div class="status">
-      <div class="gauge">
-        <div class="gauge-label"><span>마을 환경 점수 · <span id="prog">0/6</span></span><b id="score">0</b></div>
-        <div class="gauge-track"><div class="gauge-fill" id="fill"></div></div>
+      <div class="hbadges">
+        <div class="hb-label">내 배지 <b id="bcount">0/6</b> · ★완벽 <b id="pcount">0</b></div>
+        <div class="hb-row" id="hbadges"></div>
       </div>
       <div class="tools">
         <button class="chip-btn" id="soundBtn" type="button" aria-pressed="false">소리 끔</button>
@@ -233,7 +245,7 @@ const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { c
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 const WORLD = 3000, FEET = 374, DONG_H = 122, SPEED = 300, VIEW_H = 340;
-const MAX_PER = 16;
+const BADGE = { trash:['♻️','분리배출 달인'], forest:['🌳','뒷산 숲 지킴이'], river:['🐟','안경다리 하천 지킴이'], energy:['☀️','햇빛 발전왕'], air:['🌤️','맑은 하늘 지킴이'], traffic:['🚌','함백역 친환경 여행가'] };
 
 const MISSIONS = [
   { id:'trash',   t:'분리배출 대작전', x:600,  sign:'분리배출장',
@@ -271,15 +283,19 @@ const MID = Object.fromEntries(MISSIONS.map(m => [m.id, m]));
 const STYLES = ['햇살이 비치는 밝은 수채화 그림', '따뜻한 동화책 삽화', '귀여운 3D 애니메이션 장면'];
 
 /* ---------------- state ---------------- */
-let S = { name:'', started:false, t0:0, t1:0, done:{}, fav:null, style:0, sound:false };
-const KEY = 'sindong-eco-v2';
+let S = { name:'', started:false, t0:0, t1:0, done:{}, toured:false, fav:null, style:0, sound:false };
+const KEY = 'sindong-eco-v3';
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 function load(d){
   if (d && d.done) { Object.assign(S, d); return; }
   try{ const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.done) Object.assign(S, s); }catch(e){}
 }
 const nDone = () => Object.keys(S.done).length;
-function total(){ let t = Object.values(S.done).reduce((a, b) => a + b, 0); if (nDone() === MISSIONS.length) t += 4; return t; }
+const nPerfect = () => MISSIONS.filter(m => S.done[m.id] === 0).length;
+function badge(id, big, fresh){
+  const b = BADGE[id], st = !(id in S.done) ? 'none' : S.done[id] === 0 ? 'gold' : 'silver';
+  return `<span class="bdg ${st}${big ? ' lg' : ''}${fresh ? ' new' : ''}" title="${b[1]}${st === 'gold' ? ' (완벽)' : st === 'none' ? ' (아직)' : ''}"><span class="bi">${b[0]}</span>${st === 'gold' ? '<span class="st">★</span>' : ''}</span>`;
+}
 
 // runtime
 const R = { x:240, dir:1, pose:'front', moving:false, hold:0, queue:[], cam:0, camTarget:null, VW:800,
@@ -472,17 +488,17 @@ function renderRiverTrash(){
 /* ---------------- village state ---------------- */
 function renderVillage(){
   const g = $('#game');
-  MISSIONS.forEach(m => g.classList.toggle('fix-' + m.id, m.id in S.done));
+  MISSIONS.forEach(m => g.classList.toggle('fix-' + m.id, m.id in S.done && !(R.mission && R.mission.id === m.id)));
   g.style.filter = `saturate(${(.55 + nDone() * .09).toFixed(2)})`;
   const k = nDone() / 6;
   $('#grass').setAttribute('fill', mix('#9d9a6c', '#8cbf5f', k));
   $('#front').setAttribute('fill', mix('#a3a06d', '#8fc265', k));
-  $('#score').textContent = total();
-  $('#fill').style.width = total() + '%';
-  $('#prog').textContent = `${nDone()}/6 해결`;
+  $('#bcount').textContent = `${nDone()}/6`;
+  $('#pcount').textContent = nPerfect();
+  $('#hbadges').innerHTML = MISSIONS.map(m => badge(m.id)).join('');
   $('#marks').innerHTML = MISSIONS.filter(m => !(m.id in S.done)).map(m =>
     `<g class="mark" data-go="${m.id}" transform="translate(${m.id === 'river' ? 1520 : m.x} ${m.my || 205})"><circle class="ring" r="18" fill="none" stroke="#f2c928" stroke-width="4"/><circle r="18" fill="#f2c928" stroke="#213a38" stroke-width="3"/><text y="1" fill="#213a38">!</text></g>`).join('');
-  $('#mbar').innerHTML = MISSIONS.map(m => `<button type="button" data-go="${m.id}" class="${m.id in S.done ? 'done' : ''}"><span class="b">${m.id in S.done ? '✓' : '!'}</span>${m.t}</button>`).join('');
+  $('#mbar').innerHTML = MISSIONS.map(m => `<button type="button" data-go="${m.id}" class="${m.id in S.done ? (S.done[m.id] === 0 ? 'done perfect' : 'done') : ''}"><span class="b">${m.id in S.done ? (S.done[m.id] === 0 ? '★' : '✓') : '!'}</span>${m.t}</button>`).join('');
   R.panelKey = '';
 }
 function mix(a, b, k){
@@ -559,9 +575,11 @@ function updateFreePanel(){
     const ph = PHOTO[m.id] ? `<figure class="photo"><img src="${PHOTO[m.id]}" alt="${PHOTO_CAP[m.id]} 사진"><figcaption>${PHOTO_CAP[m.id]}</figcaption></figure>` : '';
     panel(m.t, m.offer, `<div class="offer">${ph}<div class="offer-act">${padHTML()}<button class="btn" type="button" data-start="${m.id}">동이 도와주기!</button></div></div>`, 'offer-' + m.id);
   } else if (m){
-    if (R.panelKey === 'solved-' + m.id) return;
+    const pf = S.done[m.id] === 0;
+    if (R.panelKey === 'solved-' + m.id + pf) return;
     face('happy');
-    panel(m.t, `여긴 벌써 깨끗해졌어! ${m.done}`, padHTML(), 'solved-' + m.id);
+    panel(m.t, pf ? `여긴 ★완벽 배지까지 받은 곳이야! ${m.done}` : `여긴 벌써 깨끗해졌어! 실수 없이 다시 하면 <b>★완벽 배지</b>를 받을 수 있어.`,
+      `<div class="offer"><div class="got">${badge(m.id, true)}<span class="muted">${BADGE[m.id][1]}</span></div><div class="offer-act">${padHTML()}${pf ? '' : `<button class="btn" type="button" data-retry="${m.id}">완벽 배지 도전!</button>`}</div></div>`, 'solved-' + m.id + pf);
   } else {
     const left = 6 - nDone();
     const key = 'free-' + left;
@@ -574,10 +592,20 @@ function updateFreePanel(){
 }
 
 /* ---------------- missions ---------------- */
+// 임무 장소를 처음 상태로 되돌린다 (그만두기, 완벽 배지 재도전)
+const RESET = {
+  trash(){ $('#pile').style.transform = ''; },
+  forest(){ MID.forest.mx.forEach((x, i) => { $('#mound' + i).style.opacity = ''; $('#mound' + i).querySelector('.tap-hint')?.remove(); $('#mtree' + i).classList.remove('on', 'grow'); }); },
+  river(){ renderRiverTrash(); document.querySelectorAll('.water').forEach(el => el.setAttribute('fill', '#8a7a55')); },
+  energy(){ ['1', '2', '3', '4'].forEach(i => $('#solar' + i).classList.remove('on')); },
+  air(){ $('#smoke').style.opacity = ''; },
+};
 function startMission(id){
   const m = MID[id];
   stopWalking();
-  R.mode = 'mission'; R.mission = { id, mistakes:0, cleanup:null, locked:false };
+  R.mode = 'mission'; R.mission = { id, mistakes:0, cleanup:RESET[id] || null, locked:false, retry:id in S.done };
+  if (RESET[id]) RESET[id]();
+  renderVillage();
   R.camTarget = m.x;
   face('determined');
   panel(m.t, m.play, '', 'm-' + id);
@@ -600,19 +628,21 @@ function quitMission(){
 }
 function finishMission(){
   const M = R.mission, m = MID[M.id];
-  const pts = Math.max(8, MAX_PER - M.mistakes * 2);
-  S.done[M.id] = pts;
+  const perfect = M.mistakes === 0, b = BADGE[M.id];
+  S.done[M.id] = M.id in S.done ? Math.min(S.done[M.id], M.mistakes) : M.mistakes;
   if (nDone() === MISSIONS.length && !S.t1) S.t1 = Date.now();
   save(); tone('win');
   R.mission = null; stopWalking();
   renderVillage();
-  sparkle(R.x, FEET - DONG_H / 2); floatText(`+${pts}`, R.x, FEET - DONG_H - 10, '#b98a00');
+  sparkle(R.x, FEET - DONG_H / 2); floatText(perfect ? '★ 완벽!' : '배지 획득!', R.x, FEET - DONG_H - 10, '#b98a00');
   setPose('front'); R.celebrate = performance.now();
   face('happy');
-  panel(`+${pts}점! ${m.t} 성공`, `${m.done} ${M.mistakes === 0 ? '실수 하나 없이 완벽했어!' : `실수 ${M.mistakes}번, 그래도 해냈어!`}`,
-    `<div class="row"><span class="muted">화면에서 바뀐 마을을 확인해 봐!</span><button class="btn" type="button" data-cont>${nDone() === 6 ? '10년 뒤 신동읍 보기' : '다음 장소로!'}</button></div>`, 'fin-' + M.id);
+  const contLabel = nDone() === 6 ? (S.toured ? '내 배지 모두 보기' : '10년 뒤 신동읍 보기') : '다음 장소로!';
+  panel(perfect ? `★ 완벽 배지! ${b[1]}` : `${b[1]} 배지 획득!`,
+    `${m.done} ${perfect ? '실수 하나 없이 해냈어!' : `실수 ${M.mistakes}번! 실수 없이 다시 하면 <b>★완벽 배지</b>로 바뀌어.`}`,
+    `<div class="offer"><div class="got">${badge(M.id, true, true)}</div><div class="offer-act">${perfect ? '' : `<button class="btn ghost" type="button" data-retry="${M.id}">완벽 배지 도전</button>`}<button class="btn" type="button" data-cont>${contLabel}</button></div></div>`, 'fin-' + M.id + Date.now());
   R.mode = 'result';
-  const b = $('[data-cont]'); if (b) b.focus({ preventScroll:true });
+  const cb = $('[data-cont]'); if (cb) cb.focus({ preventScroll:true });
 }
 
 const GAMES = {
@@ -778,7 +808,7 @@ const GAMES = {
 
 /* ---------------- tour + ending ---------------- */
 function startTour(){
-  R.mode = 'tour'; stopWalking();
+  R.mode = 'tour'; stopWalking(); S.toured = true; save();
   const maxCam = WORLD - R.VW;
   R.tour = { t0:performance.now(), from:R.cam, dur:Math.max(5000, maxCam * 3.2) };
   $('#banner').textContent = '10년 뒤 신동읍'; $('#banner').hidden = false; $('#skipBtn').hidden = false;
@@ -802,7 +832,7 @@ function showIntro(){
   openSheet(`<div class="hero"><img src="${SPR.wave.uri}" alt="손을 흔드는 동이">
       <div class="say"><h2 id="sheetTitle">안녕! 나는 신동읍 환경 지킴이 동이야</h2>
       <p>안경다리 아래 하천엔 쓰레기가 떠다니고, 하늘은 연기로 뿌옇고, 뒷산은 나무가 베어져 휑해. 나랑 같이 마을을 돌면서 <b>6가지 임무</b>를 해결해 줄래?</p></div></div>
-    <div class="how"><div><b>걷기</b>화면을 누르면 동이가 그곳으로 걸어가요. ◀ ▶ 버튼도 돼요.</div><div><b>임무</b>노란 ! 표시가 있는 곳에서 동이를 도와주세요.</div><div><b>점수</b>임무마다 최고 16점, 실수하면 2점씩 줄어요.</div></div>
+    <div class="how"><div><b>걷기</b>화면을 누르면 동이가 그곳으로 걸어가요. ◀ ▶ 버튼도 돼요.</div><div><b>임무</b>노란 ! 표시가 있는 곳에서 동이를 도와주세요.</div><div><b>배지</b>임무를 끝내면 배지를 받아요. 실수 없이 끝내면 ★완벽 배지!</div></div>
     <div class="name-row"><label for="nameIn">구조대원 이름</label><input id="nameIn" maxlength="10" autocomplete="off" placeholder="이름을 적어 주세요" value="${esc(S.name)}"></div>
     <div class="row"><span></span><button class="btn" type="button" id="goBtn">동이랑 출발!</button></div>`);
   const go = () => {
@@ -816,12 +846,12 @@ function showIntro(){
 }
 
 function showEnding(){
-  const sc = total();
-  const rank = sc >= 95 ? '구조대 대장' : sc >= 80 ? '에이스 대원' : '든든한 대원';
+  const pf = nPerfect();
   const who = S.name ? `${esc(S.name)} 대원` : '구조대원';
   openSheet(`<div class="hero"><img src="${SPR.wave.uri}" alt="손을 흔드는 동이">
-      <div class="say"><h2 id="sheetTitle">${who}, 고마워!</h2><p>덕분에 신동읍이 완전히 바뀌었어. 이제 <b>가장 마음에 든 변화 1가지</b>를 골라서 활동지에 옮겨 적어 보자.</p></div></div>
-    <div class="stats"><div class="stat"><b>${sc}</b><span>마을 환경 점수</span></div><div class="stat"><b>${fmt((S.t1 || Date.now()) - S.t0)}</b><span>걸린 시간</span></div><div class="stat"><b style="font-size:21px;line-height:1.6">${rank}</b><span>나의 등급</span></div></div>
+      <div class="say"><h2 id="sheetTitle">${pf === 6 ? `${who}, ★완벽 배지 6개!` : `${who}, 고마워!`}</h2><p>덕분에 신동읍이 완전히 바뀌었어. 이제 <b>가장 마음에 든 변화 1가지</b>를 골라서 활동지에 옮겨 적어 보자.</p></div></div>
+    <div class="bgrid">${MISSIONS.map(m => `<div class="bcell">${badge(m.id, true)}<span>${BADGE[m.id][1]}${S.done[m.id] === 0 ? ' ★' : ''}</span></div>`).join('')}</div>
+    <p class="muted" style="margin:0;text-align:center">★완벽 배지 ${pf}/6${pf < 6 ? ' · 활동지를 쓰고 시간이 남으면 ‘마을 다시 둘러보기’를 눌러 은색 배지 장소에서 다시 도전해 봐!' : ' · 모든 임무를 실수 없이 해냈어!'}</p>
     <div class="fav" id="fav">${MISSIONS.map(m => `<button type="button" data-fav="${m.id}" aria-pressed="${S.fav === m.id}">${m.t}</button>`).join('')}</div>
     <div id="wsOut" class="body"></div>
     <div class="row"><button class="btn ghost" type="button" data-closesheet>마을 다시 둘러보기</button></div>`);
@@ -880,7 +910,8 @@ document.addEventListener('click', e => {
   const go = t.closest('#mbar [data-go]'); if (go){ goStation(go.dataset.go); return; }
   const st = t.closest('[data-start]'); if (st){ startMission(st.dataset.start); return; }
   if (t.closest('[data-quit]')){ quitMission(); return; }
-  if (t.closest('[data-cont]')){ R.mode = 'free'; R.panelKey = ''; if (nDone() === 6) startTour(); else { const next = MISSIONS.find(m => !(m.id in S.done)); updateFreePanel(); if (next) emote(`다음은 ${next.sign}!`, 1500); } return; }
+  const rt = t.closest('[data-retry]'); if (rt){ startMission(rt.dataset.retry); return; }
+  if (t.closest('[data-cont]')){ R.mode = 'free'; R.panelKey = ''; if (nDone() === 6){ if (S.toured){ updateFreePanel(); showEnding(); } else startTour(); } else { const next = MISSIONS.find(m => !(m.id in S.done)); updateFreePanel(); if (next) emote(`다음은 ${next.sign}!`, 1500); } return; }
   const M = R.mission;
   if (M){
     const bin = t.closest('[data-bin]'); if (bin && M.onBin){ M.onBin(bin.dataset.bin, +bin.dataset.bi); return; }
@@ -917,7 +948,7 @@ $('#resetBtn').addEventListener('click', () => {
   clearTimeout(resetArm); resetArm = null; b.textContent = '처음부터'; b.classList.remove('warn');
   if (R.mission && R.mission.cleanup) R.mission.cleanup();
   const snd = S.sound;
-  S = { name:'', started:false, t0:0, t1:0, done:{}, fav:null, style:0, sound:snd }; save();
+  S = { name:'', started:false, t0:0, t1:0, done:{}, toured:false, fav:null, style:0, sound:snd }; save();
   Object.assign(R, { x:240, dir:1, mode:'free', mission:null, queue:[], hold:0, tour:null, camTarget:null });
   $('#banner').hidden = true; $('#skipBtn').hidden = true; closeSheet();
   renderRiverTrash(); renderVillage(); updateFreePanel(); showIntro();
