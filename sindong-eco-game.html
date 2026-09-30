@@ -1,0 +1,806 @@
+<title>신동읍 환경 구조대</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: one-screen game — a watercolor village scene on top, six mission cards below, missions open in a sheet with 동이 as the guide. Single committed light look (paper + mountain mist). */
+:root{
+  --mist:#e8f0ec;       /* page ground: mountain-morning mist */
+  --paper:#fbfcf8;      /* cards, sheets */
+  --ink:#213a38;        /* text, outlines */
+  --ink-soft:#56706c;
+  --hoodie:#f2b705;     /* 동이's yellow hoodie — the one accent */
+  --hoodie-deep:#c98f00;
+  --river:#3f9cc4;
+  --leaf:#4f8a3c;
+  --rust:#c4572e;       /* mistakes, pollution */
+  --line:#c9d8d2;
+  --display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--mist);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--hoodie-deep);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:-.01em}
+
+.app{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:14px 28px;display:flex;flex-direction:column;gap:14px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--ink-soft)}
+.top h1{font-size:clamp(28px,5vw,42px);line-height:1.1}
+.top h1 em{font-style:normal;color:var(--hoodie-deep)}
+.status{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.gauge{min-width:210px;flex:1}
+.gauge-label{display:flex;justify-content:space-between;font-size:14px;color:var(--ink-soft)}
+.gauge-label b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.gauge-track{height:14px;border-radius:99px;background:#d6ddd3;border:2px solid var(--ink);overflow:hidden;margin-top:4px}
+.gauge-fill{height:100%;width:0;background:linear-gradient(90deg,var(--leaf),var(--hoodie));transition:width .9s cubic-bezier(.3,1.4,.5,1)}
+.tools{display:flex;gap:8px}
+.chip-btn{border:2px solid var(--ink);background:var(--paper);border-radius:99px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.chip-btn.warn{background:var(--rust);color:#fff;border-color:var(--rust)}
+
+/* scene */
+.scene-wrap{position:relative;border:3px solid var(--ink);border-radius:20px;overflow:hidden;background:#cfc6b0;box-shadow:0 6px 0 var(--ink)}
+.scene-wrap svg{display:block;width:100%;height:auto}
+#world{transition:filter 1.2s}
+.bubble{position:absolute;left:12px;top:12px;max-width:min(360px,70%);background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:6px 12px;font-size:15px;line-height:1.4}
+.bubble b{font-family:var(--display);font-weight:400;color:var(--hoodie-deep)}
+
+.t-slow{transition:fill 1.4s,opacity 1.4s,transform 1.2s cubic-bezier(.3,1.5,.5,1)}
+.clean-sky,.fish,.solar,.bins,.new-tree,.bus-lane,.river-shine{opacity:0}
+.fix-air .clean-sky{opacity:1}
+.fix-air .haze,.fix-air .smoke,.fix-air .fire{opacity:0}
+.fix-forest .hill{fill:#79a957}
+.fix-forest .new-tree{opacity:1;transform:scale(1)}
+.new-tree{transform:scale(.2);transform-box:fill-box;transform-origin:50% 100%}
+.fix-forest .stump{opacity:0}
+.fix-river .river{fill:#4aa3c9}
+.fix-river .river-trash{opacity:0;transform:translateY(20px)}
+.fix-river .fish,.fix-river .river-shine{opacity:1}
+.fix-trash .pile{opacity:0;transform:scale(.3)}
+.pile{transform-box:fill-box;transform-origin:50% 100%}
+.fix-trash .bins{opacity:1}
+.fix-trash .ground{fill:#a9c77f}
+.fix-trash .litter{opacity:0}
+.fix-energy .solar{opacity:1}
+.fix-energy .window{fill:#ffe38a}
+.fix-energy{--solar:1;--win:#ffe38a}
+.fix-traffic .car-lane{opacity:0}
+.fix-traffic .bus-lane{opacity:1}
+
+.drive{animation:drive 11s linear infinite}
+.drive.slow{animation-duration:16s}
+@keyframes drive{from{transform:translateX(-140px)}to{transform:translateX(940px)}}
+.puff{animation:puff 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes puff{from{opacity:.8;transform:translate(0,0) scale(.6)}to{opacity:0;transform:translate(-18px,-10px) scale(1.6)}}
+.rise{animation:rise 4s ease-out infinite;transform-box:fill-box;transform-origin:center}
+.rise:nth-child(2){animation-delay:-1.3s}.rise:nth-child(3){animation-delay:-2.6s}
+@keyframes rise{from{opacity:.85;transform:translate(0,0) scale(.6)}to{opacity:0;transform:translate(14px,-90px) scale(1.8)}}
+.bob{animation:bob 2.4s ease-in-out infinite;transform-box:fill-box}
+.bob:nth-child(2n){animation-delay:-1.2s}
+@keyframes bob{50%{transform:translateY(-3px) rotate(-6deg)}}
+.swim{animation:swim 5s ease-in-out infinite;transform-box:fill-box}
+@keyframes swim{50%{transform:translateX(26px)}}
+
+.hs{cursor:pointer}
+.hs circle.ring{animation:ping 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes ping{from{opacity:.8;transform:scale(1)}to{opacity:0;transform:scale(2.1)}}
+.hs.done circle.ring{animation:none;opacity:0}
+.hs .dot{fill:var(--hoodie);stroke:var(--ink);stroke-width:3}
+.hs.done .dot{fill:var(--leaf)}
+.hs text{font-family:var(--display);font-size:20px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.hs.done text{fill:#fff}
+.hs:focus-visible .dot{stroke:var(--rust);stroke-width:5}
+
+/* mission cards */
+.missions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.m-card{display:flex;align-items:center;gap:12px;text-align:left;background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:10px 12px;min-width:0;transition:transform .15s}
+.m-card:hover{transform:translateY(-2px)}
+.m-card .badge{flex:none;width:34px;height:34px;border-radius:50%;border:2.5px solid var(--ink);background:var(--hoodie);display:grid;place-items:center;font-family:var(--display);font-size:19px}
+.m-card.done .badge{background:var(--leaf);color:#fff}
+.m-card .txt{min-width:0;display:flex;flex-direction:column}
+.m-card .t{font-family:var(--display);font-size:19px;line-height:1.2}
+.m-card .s{font-size:13.5px;color:var(--ink-soft);line-height:1.35}
+.m-card.done .s{color:var(--leaf);font-weight:700}
+@media (max-width:760px){.missions{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:420px){.m-card .s{display:none}}
+
+/* overlay + sheet */
+.overlay{position:fixed;inset:0;background:rgba(24,44,42,.55);display:grid;place-items:center;padding:16px;z-index:10;overflow-y:auto}
+.sheet{width:min(640px,100%);background:var(--paper);border:3px solid var(--ink);border-radius:22px;box-shadow:0 8px 0 var(--ink);padding:18px;display:flex;flex-direction:column;gap:14px;max-height:calc(100% - 8px);overflow-y:auto;animation:pop .35s cubic-bezier(.3,1.5,.5,1)}
+@keyframes pop{from{transform:scale(.9) translateY(20px);opacity:0}}
+.guide{display:flex;gap:12px;align-items:flex-start}
+.guide svg{flex:none;width:64px;height:64px}
+.say{position:relative;background:#fff6d6;border:2px solid var(--ink);border-radius:14px;padding:8px 12px;font-size:16px;min-width:0}
+.say h2{font-size:24px;line-height:1.2;margin-bottom:2px}
+.say p{margin:0}
+.stage{min-height:240px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.btn{border:2.5px solid var(--ink);background:var(--hoodie);border-radius:14px;padding:10px 18px;font-family:var(--display);font-size:20px;box-shadow:0 4px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.ghost{background:var(--paper)}
+.btn[disabled]{opacity:.45;cursor:default}
+.muted{color:var(--ink-soft);font-size:14px}
+.counter{font-family:var(--display);font-size:18px}
+.msg{min-height:1.6em;font-size:15.5px}
+.msg.bad{color:var(--rust)}
+.msg.good{color:var(--leaf)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* river mini game */
+.pond{position:relative;height:260px;border:2.5px solid var(--ink);border-radius:16px;overflow:hidden;background:#8a7a55;transition:background 1s}
+.pond .it{position:absolute;width:56px;height:56px;margin:-28px 0 0 -28px;border:none;background:none;font-size:40px;line-height:56px;padding:0;animation:bob 2.4s ease-in-out infinite}
+.pond .it:nth-child(3n){animation-delay:-.8s}.pond .it:nth-child(3n+1){animation-delay:-1.6s}
+.pond .it.gone{animation:gone .35s forwards}
+@keyframes gone{to{transform:scale(1.6);opacity:0}}
+
+/* sort */
+.sort-item{align-self:center;display:flex;flex-direction:column;align-items:center;gap:2px;background:#fff;border:2.5px solid var(--ink);border-radius:18px;padding:10px 26px;min-width:220px;max-width:100%}
+.sort-item .e{font-size:54px;line-height:1.1}
+.sort-item .n{font-family:var(--display);font-size:22px}
+.sort-item .h{font-size:14px;color:var(--ink-soft);text-align:center}
+.bins-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.bin{border:2.5px solid var(--ink);border-radius:12px 12px 16px 16px;padding:14px 4px 10px;font-family:var(--display);font-size:18px;box-shadow:0 4px 0 var(--ink)}
+.bin:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+@media (max-width:460px){.bins-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* O/X */
+.q{font-family:var(--display);font-size:23px;line-height:1.35;background:#fff;border:2.5px solid var(--ink);border-radius:16px;padding:14px 16px}
+.ox{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ox button{font-family:var(--display);font-size:48px;line-height:1;padding:14px 0;border:2.5px solid var(--ink);border-radius:16px;background:#fff;box-shadow:0 4px 0 var(--ink)}
+.ox .o{color:#2d7fb0}.ox .x{color:var(--rust)}
+.explain{background:#eef6e9;border:2px dashed var(--leaf);border-radius:12px;padding:8px 12px;font-size:15.5px}
+.explain.bad{background:#fbece6;border-color:var(--rust)}
+
+/* forest / roofs */
+.field{position:relative;height:250px;border:2.5px solid var(--ink);border-radius:16px;overflow:hidden;background:linear-gradient(#bfe1ea 0 35%,#b6a57c 35%)}
+.field .spot{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:2.5px dashed #6d5a36;background:rgba(109,90,54,.25);font-size:42px;line-height:58px;padding:0}
+.field .spot.planted{border-color:transparent;background:none;animation:grow .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes grow{from{transform:scale(.2)}}
+.roofs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.roof{border:none;background:none;padding:0}
+.roof svg{width:100%;height:auto;display:block}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card-pick{border:2.5px solid var(--ink);border-radius:14px;background:#fff;padding:12px;font-size:16px;text-align:left;box-shadow:0 3px 0 var(--ink);min-width:0}
+.card-pick.ok{background:#e1f0d6;border-color:var(--leaf)}
+.card-pick.no{background:#fbe3da;border-color:var(--rust);text-decoration:line-through}
+@media (max-width:460px){.cards{grid-template-columns:1fr}}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choices button{border:2.5px solid var(--ink);border-radius:16px;background:#fff;padding:14px 10px;font-size:17px;box-shadow:0 4px 0 var(--ink);min-width:0}
+
+/* result */
+.result{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding-block:14px}
+.result .plus{font-family:var(--display);font-size:56px;color:var(--leaf);line-height:1}
+.result h3{font-size:24px}
+
+/* intro + ending */
+.intro-art{border:2.5px solid var(--ink);border-radius:16px;overflow:hidden;background:#cfe7ef}
+.intro-art svg{display:block;width:100%;height:auto}
+.name-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.name-row label{font-family:var(--display);font-size:18px}
+.name-row input{flex:1;min-width:0;font:inherit;font-size:18px;padding:8px 12px;border:2.5px solid var(--ink);border-radius:12px;background:#fff;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:8px 4px}
+.stat b{display:block;font-family:var(--display);font-weight:400;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--ink-soft)}
+.fav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fav button,.styles button{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:8px 6px;font-size:15px;min-width:0}
+.fav button[aria-pressed="true"],.styles button[aria-pressed="true"]{background:var(--hoodie)}
+.styles{display:flex;flex-wrap:wrap;gap:8px}
+.worksheet{border:2.5px solid var(--ink);border-radius:14px;overflow:hidden;background:#fff}
+.worksheet h3{font-size:17px;background:var(--ink);color:#fff;padding:6px 12px}
+.ws-row{display:grid;grid-template-columns:84px 1fr;border-top:1.5px solid var(--line)}
+.ws-row:first-of-type{border-top:0}
+.ws-row span{background:#f1f5f2;padding:8px 10px;font-size:14px;color:var(--ink-soft)}
+.ws-row p{margin:0;padding:8px 12px;font-size:16px;min-width:0}
+.prompt{background:#fff6d6;border:2px solid var(--hoodie-deep);border-radius:12px;padding:10px 12px;font-size:17px;user-select:all}
+@media (max-width:520px){.fav{grid-template-columns:repeat(2,1fr)}.stat b{font-size:24px}}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="eyebrow">생성형 AI 환경 프로젝트 · 1교시 환경 게임</div>
+      <h1>신동읍 <em>환경 구조대</em></h1>
+    </div>
+    <div class="status">
+      <div class="gauge">
+        <div class="gauge-label"><span>마을 환경 점수 <span id="prog">0/6 해결</span></span><b id="score">0</b></div>
+        <div class="gauge-track"><div class="gauge-fill" id="fill"></div></div>
+      </div>
+      <div class="tools">
+        <button class="chip-btn" id="soundBtn" type="button" aria-pressed="false">소리 끔</button>
+        <button class="chip-btn" id="resetBtn" type="button">처음부터</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="scene-wrap">
+    <svg viewBox="0 0 800 450" role="img" aria-label="신동읍 마을 그림. 임무를 해결할 때마다 마을이 깨끗해집니다.">
+      <defs>
+        <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc3e0"/><stop offset="1" stop-color="#e3f4f6"/></linearGradient>
+        <linearGradient id="gDirty" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a39c88"/><stop offset="1" stop-color="#d8cdb2"/></linearGradient>
+        <filter id="wc" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="7"/>
+          <feDisplacementMap in="SourceGraphic" scale="5"/>
+        </filter>
+        <g id="tree-a"><rect x="-3" y="-4" width="6" height="16" fill="#6b4a2b"/><circle r="15" cy="-14" fill="#e0782f"/><circle r="9" cx="-7" cy="-20" fill="#f0a23a" opacity=".8"/></g>
+        <g id="tree-b"><rect x="-3" y="-4" width="6" height="16" fill="#6b4a2b"/><path d="M0 -40 L16 -2 L-16 -2Z" fill="#3f7d3a"/><path d="M0 -30 L12 -8 L-12 -8Z" fill="#5a9b48"/></g>
+        <g id="tree-c"><rect x="-3" y="-4" width="6" height="16" fill="#6b4a2b"/><circle r="14" cy="-13" fill="#c9412f"/><circle r="8" cx="6" cy="-19" fill="#e8663f" opacity=".8"/></g>
+        <g id="house">
+          <rect x="-25" y="-34" width="50" height="34" fill="#f4ead6" stroke="#213a38" stroke-width="2"/>
+          <path d="M-31 -32 L0 -56 L31 -32Z" stroke="#213a38" stroke-width="2"/>
+          <rect x="-16" y="-24" width="11" height="10" style="fill:var(--win,#9fb4b8);transition:fill 1.4s" stroke="#213a38" stroke-width="1.5"/>
+          <rect x="5" y="-20" width="11" height="20" fill="#8a6446" stroke="#213a38" stroke-width="1.5"/>
+          <g style="opacity:var(--solar,0);transition:opacity 1.4s"><path d="M4 -48 L22 -35 L10 -35 L-6 -47Z" fill="#274a78" stroke="#dfe9f5" stroke-width="1"/><path d="M-2 -47.5 L14 -35" stroke="#dfe9f5" stroke-width=".8"/></g>
+        </g>
+      </defs>
+
+      <g id="world">
+        <rect width="800" height="450" fill="url(#gDirty)"/>
+        <rect class="clean-sky t-slow" width="800" height="450" fill="url(#gSky)"/>
+        <circle cx="660" cy="80" r="34" fill="#ffd35a"/>
+
+        <g filter="url(#wc)">
+          <path d="M0 215 L80 150 L160 190 L250 118 L345 176 L430 104 L520 170 L610 128 L700 178 L800 138 L800 280 L0 280Z" fill="#8fa7a0"/>
+          <path class="hill t-slow" d="M0 258 Q120 172 262 236 Q382 186 520 242 Q652 180 800 232 L800 330 L0 330Z" fill="#a79a74"/>
+        </g>
+        <!-- 벌목된 그루터기 -->
+        <g class="stump t-slow" fill="#6b4a2b">
+          <rect x="60" y="222" width="8" height="6"/><rect x="118" y="206" width="8" height="6"/><rect x="190" y="215" width="8" height="6"/>
+          <rect x="590" y="214" width="8" height="6"/><rect x="660" y="202" width="8" height="6"/><rect x="735" y="214" width="8" height="6"/>
+        </g>
+        <g class="trees">
+          <use href="#tree-a" class="new-tree t-slow" x="40" y="236"/>
+          <use href="#tree-b" class="new-tree t-slow" x="80" y="222"/>
+          <use href="#tree-c" class="new-tree t-slow" x="122" y="212"/>
+          <use href="#tree-b" class="new-tree t-slow" x="165" y="214"/>
+          <use href="#tree-a" class="new-tree t-slow" x="205" y="222"/>
+          <use href="#tree-b" class="new-tree t-slow" x="352" y="208"/>
+          <use href="#tree-c" class="new-tree t-slow" x="400" y="206"/>
+          <use href="#tree-a" class="new-tree t-slow" x="575" y="218"/>
+          <use href="#tree-b" class="new-tree t-slow" x="620" y="204"/>
+          <use href="#tree-c" class="new-tree t-slow" x="665" y="202"/>
+          <use href="#tree-a" class="new-tree t-slow" x="712" y="208"/>
+          <use href="#tree-b" class="new-tree t-slow" x="760" y="214"/>
+        </g>
+
+        <rect class="haze t-slow" width="800" height="330" fill="#b8ab8c" opacity=".38"/>
+
+        <!-- 땅 -->
+        <rect class="ground t-slow" y="300" width="800" height="150" fill="#b8ad86"/>
+        <g class="litter t-slow" fill="#e9e1cf" stroke="#213a38" stroke-width="1">
+          <rect x="220" y="350" width="9" height="5" transform="rotate(20 224 352)"/><rect x="480" y="356" width="10" height="5"/><rect x="640" y="349" width="8" height="5" transform="rotate(-25 644 351)"/>
+        </g>
+
+        <!-- 마을 집 -->
+        <g fill="#b64a36">
+          <use href="#house" x="258" y="304" fill="#b64a36"/>
+          <use href="#house" x="322" y="310" fill="#3f6f8e"/>
+          <use href="#house" x="520" y="306" fill="#3f6f8e"/>
+          <use href="#house" x="584" y="310" fill="#b64a36"/>
+        </g>
+        <!-- 학교 -->
+        <g>
+          <rect x="378" y="262" width="104" height="48" fill="#f1e2c4" stroke="#213a38" stroke-width="2"/>
+          <path d="M370 264 L430 238 L490 264Z" fill="#6d8f6a" stroke="#213a38" stroke-width="2"/>
+          <g fill="#9fb4b8" stroke="#213a38" stroke-width="1.5">
+            <rect class="window t-slow" x="388" y="274" width="14" height="12"/><rect class="window t-slow" x="410" y="274" width="14" height="12"/><rect class="window t-slow" x="436" y="274" width="14" height="12"/><rect class="window t-slow" x="458" y="274" width="14" height="12"/>
+          </g>
+          <rect x="422" y="292" width="16" height="18" fill="#8a6446" stroke="#213a38" stroke-width="1.5"/>
+          <g class="solar t-slow"><path d="M392 258 L420 246 L436 252 L408 264Z" fill="#274a78" stroke="#dfe9f5"/><path d="M438 252 L466 246 L480 256 L452 262Z" fill="#274a78" stroke="#dfe9f5"/></g>
+          <line x1="492" y1="310" x2="492" y2="262" stroke="#213a38" stroke-width="2"/>
+          <path d="M492 262 L512 268 L492 274Z" fill="#f2b705" stroke="#213a38" stroke-width="1.5"/>
+        </g>
+
+        <!-- 쓰레기 더미 / 분리수거함 -->
+        <g class="pile t-slow">
+          <path d="M60 318 Q72 280 102 288 Q118 270 140 290 Q168 284 176 318Z" fill="#8c8272" stroke="#213a38" stroke-width="2"/>
+          <rect x="84" y="290" width="16" height="12" fill="#d7c9a6" stroke="#213a38" stroke-width="1.5" transform="rotate(-12 92 296)"/>
+          <circle cx="130" cy="298" r="7" fill="#c7d6dc" stroke="#213a38" stroke-width="1.5"/>
+          <path d="M146 300 l14 -8 l4 10 z" fill="#e5e0d4" stroke="#213a38" stroke-width="1.5"/>
+          <rect x="108" y="304" width="8" height="14" fill="#6aa0b5" stroke="#213a38" stroke-width="1.2" transform="rotate(35 112 311)"/>
+        </g>
+        <g class="bins t-slow" stroke="#213a38" stroke-width="2">
+          <rect x="66" y="288" width="24" height="30" rx="3" fill="#3f9cc4"/><rect x="94" y="288" width="24" height="30" rx="3" fill="#f2b705"/>
+          <rect x="122" y="288" width="24" height="30" rx="3" fill="#8f98a0"/><rect x="150" y="288" width="24" height="30" rx="3" fill="#7fbf6a"/>
+          <rect x="62" y="283" width="116" height="6" rx="2" fill="#6b4a2b"/>
+        </g>
+
+        <!-- 불법 소각 연기 -->
+        <g class="fire t-slow">
+          <path d="M690 318 Q700 296 708 306 Q714 290 724 318Z" fill="#f08a2c" stroke="#213a38" stroke-width="1.5"/>
+          <path d="M682 318 L736 318 L728 324 L688 324Z" fill="#6b5d4a"/>
+        </g>
+        <g class="smoke t-slow" fill="#7c776d">
+          <ellipse class="rise" cx="706" cy="286" rx="16" ry="12"/>
+          <ellipse class="rise" cx="712" cy="280" rx="14" ry="11"/>
+          <ellipse class="rise" cx="700" cy="276" rx="12" ry="10"/>
+        </g>
+
+        <!-- 도로 -->
+        <rect y="322" width="800" height="26" fill="#6d6a64"/>
+        <line x1="0" y1="335" x2="800" y2="335" stroke="#f1e6c2" stroke-width="2" stroke-dasharray="16 14"/>
+        <g class="car-lane t-slow">
+          <g class="drive">
+            <circle class="puff" cx="-8" cy="340" r="6" fill="#6f6a60"/>
+            <path d="M0 342 L0 330 L10 330 L18 320 L44 320 L52 330 L62 330 L62 342Z" fill="#9c3b30" stroke="#213a38" stroke-width="2"/>
+            <circle cx="14" cy="343" r="5" fill="#213a38"/><circle cx="48" cy="343" r="5" fill="#213a38"/>
+          </g>
+        </g>
+        <g class="bus-lane t-slow">
+          <g class="drive slow">
+            <rect x="0" y="312" width="92" height="30" rx="6" fill="#4f9a5a" stroke="#213a38" stroke-width="2"/>
+            <g fill="#dff2f7" stroke="#213a38" stroke-width="1.2"><rect x="8" y="318" width="14" height="10"/><rect x="28" y="318" width="14" height="10"/><rect x="48" y="318" width="14" height="10"/><rect x="68" y="318" width="16" height="10"/></g>
+            <circle cx="20" cy="343" r="5" fill="#213a38"/><circle cx="72" cy="343" r="5" fill="#213a38"/>
+            <g transform="translate(-60 0)" fill="none" stroke="#213a38" stroke-width="2"><circle cx="0" cy="340" r="7"/><circle cx="24" cy="340" r="7"/><path d="M0 340 L10 328 L24 340 M10 328 L18 328"/><circle cx="12" cy="316" r="4" fill="#f2b705"/><path d="M12 320 L12 330"/></g>
+          </g>
+        </g>
+
+        <!-- 하천 -->
+        <g filter="url(#wc)">
+          <path class="river t-slow" d="M0 378 C150 356 250 402 400 380 C550 358 650 402 800 376 L800 450 L0 450Z" fill="#8a7a55"/>
+        </g>
+        <g class="river-shine t-slow" stroke="#e8f7fb" stroke-width="2" fill="none" stroke-linecap="round">
+          <path d="M60 404 q20 -6 40 0"/><path d="M300 420 q20 -6 40 0"/><path d="M560 398 q20 -6 40 0"/><path d="M700 426 q16 -5 32 0"/>
+        </g>
+        <g class="river-trash t-slow" stroke="#213a38" stroke-width="1.5">
+          <rect class="bob" x="110" y="392" width="16" height="8" rx="3" fill="#c7dbe2"/>
+          <path class="bob" d="M250 404 l16 -4 l6 10 l-18 4z" fill="#ece6d8"/>
+          <rect class="bob" x="430" y="392" width="12" height="9" fill="#b64a36"/>
+          <circle class="bob" cx="600" cy="410" r="6" fill="#d9d2bd"/>
+          <rect class="bob" x="700" y="396" width="15" height="7" rx="3" fill="#6aa0b5"/>
+        </g>
+        <g class="fish t-slow">
+          <g class="swim"><path d="M180 420 q12 -8 24 0 q-12 8 -24 0z M204 420 l8 -6 l0 12z" fill="#f08a2c" stroke="#213a38" stroke-width="1.2"/></g>
+          <g class="swim" style="animation-delay:-2s"><path d="M470 410 q12 -8 24 0 q-12 8 -24 0z M494 410 l8 -6 l0 12z" fill="#e8c24a" stroke="#213a38" stroke-width="1.2"/></g>
+          <g class="swim" style="animation-delay:-3.5s"><path d="M640 430 q10 -7 20 0 q-10 7 -20 0z M660 430 l7 -5 l0 10z" fill="#9fd3e6" stroke="#213a38" stroke-width="1.2"/></g>
+        </g>
+      </g>
+
+      <g id="hotspots"></g>
+    </svg>
+    <div class="bubble" id="bubble"><b>동이</b> 노란 동그라미를 눌러 임무를 시작해!</div>
+  </div>
+
+  <nav class="missions" id="missions" aria-label="임무 목록"></nav>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="dongi" viewBox="0 0 64 64">
+    <path d="M10 64 Q10 44 32 42 Q54 44 54 64Z" fill="#f2b705" stroke="#213a38" stroke-width="2"/>
+    <path d="M24 44 Q32 52 40 44" fill="none" stroke="#213a38" stroke-width="2"/>
+    <circle cx="32" cy="27" r="15" fill="#f6d7b8" stroke="#213a38" stroke-width="2"/>
+    <path d="M17 26 Q16 10 32 10 Q48 10 47 26 Q42 17 32 18 Q24 17 17 26Z" fill="#1d1d1d"/>
+    <circle cx="26" cy="28" r="2" fill="#213a38"/><circle cx="38" cy="28" r="2" fill="#213a38"/>
+    <path d="M27 34 Q32 38 37 34" fill="none" stroke="#213a38" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="22" cy="33" r="2.5" fill="#f3a6a0" opacity=".7"/><circle cx="42" cy="33" r="2.5" fill="#f3a6a0" opacity=".7"/>
+  </symbol>
+</svg>
+
+<script>
+(function(){
+const MAX_PER = 16;               // 임무당 최고점 16 × 6 = 96, 모두 해결하면 +4
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+const MISSIONS = [
+  { id:'river',   t:'하천 살리기',   s:'물에 떠다니는 쓰레기 줍기', hs:[400,414],
+    say:'하천에 쓰레기가 둥둥! 쓰레기만 골라서 눌러 줘. 물고기는 누르면 안 돼!',
+    done:'하천이 맑아지고 물고기가 돌아왔어!',
+    ws:{ change:'하천에 버려진 쓰레기', good:'물이 맑아져 물고기가 돌아오고 여름에 물놀이를 할 수 있어요', where:'정선 신동읍의 마을 하천', how:'쓰레기가 사라지고 물이 맑아져 물고기가 헤엄치는' } },
+  { id:'trash',   t:'분리배출 대작전', s:'쓰레기를 알맞은 통에 넣기', hs:[118,262],
+    say:'골목에 쓰레기가 뒤섞여 쌓였어. 하나씩 알맞은 통에 넣어 줘!',
+    done:'쓰레기 더미가 분리수거함으로 바뀌었어!',
+    ws:{ change:'골목에 뒤섞여 쌓인 쓰레기', good:'골목이 깨끗해지고 쓰레기를 자원으로 다시 쓸 수 있어요', where:'신동읍 마을 골목의 분리배출장', how:'쓰레기가 종류별로 깔끔하게 나뉘어 정리된' } },
+  { id:'air',     t:'맑은 공기 퀴즈', s:'O / X 퀴즈 3문제', hs:[706,240],
+    say:'마을 하늘이 뿌옇고 연기 냄새가 나. O/X 퀴즈를 풀어서 하늘을 맑게 해 줘!',
+    done:'연기가 걷히고 하늘이 파래졌어!',
+    ws:{ change:'쓰레기를 태우는 연기와 뿌연 하늘', good:'숨쉬기 편해지고 먼 산까지 또렷하게 보여요', where:'신동읍 마을 위 하늘', how:'연기가 사라지고 파랗게 맑아진' } },
+  { id:'forest',  t:'산에 나무 심기', s:'빈 땅에 나무 6그루 심기', hs:[150,190],
+    say:'산에 나무가 베어져서 흙이 드러났어. 빈 자리를 눌러 나무를 심어 줘!',
+    done:'산이 알록달록 단풍 숲이 됐어!',
+    ws:{ change:'나무가 베어져 흙이 드러난 산', good:'나무가 흙을 붙잡아 산사태를 막고 공기도 맑아져요', where:'신동읍을 둘러싼 산', how:'나무가 가득 심어져 알록달록 단풍이 물든' } },
+  { id:'energy',  t:'에너지 지킴이', s:'태양광 달고 좋은 습관 고르기', hs:[520,240],
+    say:'지붕에 태양광 패널을 달고, 전기를 아끼는 좋은 습관 카드를 골라 줘!',
+    done:'지붕마다 태양광 패널이 반짝여!',
+    ws:{ change:'전기를 낭비하는 생활', good:'햇빛으로 전기를 만들어 전기요금과 오염을 줄일 수 있어요', where:'신동읍 마을 집과 학교 지붕', how:'태양광 패널이 햇빛에 반짝이는' } },
+  { id:'traffic', t:'친환경 교통', s:'상황별 이동 방법 고르기', hs:[250,335],
+    say:'큰길에 자동차 매연이 가득해. 상황마다 더 좋은 이동 방법을 골라 줘!',
+    done:'매연 대신 버스와 자전거가 달려!',
+    ws:{ change:'자동차 매연이 가득한 큰길', good:'공기가 깨끗해지고 걸어 다니기 안전한 길이 돼요', where:'신동읍 마을 큰길', how:'자동차 매연 대신 버스와 자전거가 다니는' } },
+];
+const STYLES = ['햇살이 비치는 밝은 수채화 그림', '따뜻한 동화책 삽화', '귀여운 3D 애니메이션 장면'];
+
+/* ---------- state ---------- */
+let state = { name:'', started:false, t0:0, t1:0, done:{}, fav:null, style:0, sound:false };
+const KEY = 'sindong-eco-v1';
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function load(d){
+  if (d && d.done) return Object.assign(state, d);
+  try{ const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.done) Object.assign(state, s); }catch(e){}
+}
+function total(){
+  const ids = Object.keys(state.done);
+  let sc = ids.reduce((a, k) => a + state.done[k], 0);
+  if (ids.length === MISSIONS.length) sc += 4;
+  return sc;
+}
+
+/* ---------- sound ---------- */
+let ac = null;
+function tone(kind){
+  if (!state.sound) return;
+  try{
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const seq = kind === 'good' ? [660, 880] : kind === 'win' ? [523, 659, 784, 1047] : [220, 180];
+    seq.forEach((f, i) => {
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + i * .09;
+      o.type = kind === 'bad' ? 'square' : 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.15, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .18);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .2);
+    });
+  }catch(e){}
+}
+
+/* ---------- render village ---------- */
+function render(){
+  const world = $('#world');
+  const n = Object.keys(state.done).length;
+  MISSIONS.forEach(m => world.classList.toggle('fix-' + m.id, m.id in state.done));
+  world.style.filter = `saturate(${(.55 + n * .09).toFixed(2)})`;
+  const sc = total();
+  $('#score').textContent = sc;
+  $('#fill').style.width = sc + '%';
+  $('#prog').textContent = `${n}/6 해결`;
+
+  $('#hotspots').innerHTML = MISSIONS.map(m => {
+    const d = m.id in state.done;
+    return `<g class="hs${d ? ' done' : ''}" data-id="${m.id}" tabindex="0" role="button" aria-label="${m.t}${d ? ' (해결)' : ''}" transform="translate(${m.hs[0]} ${m.hs[1]})">
+      <circle class="ring" r="16" fill="none" stroke="#f2b705" stroke-width="4"/>
+      <circle class="dot" r="16"/><text y="1">${d ? '✓' : '!'}</text></g>`;
+  }).join('');
+
+  $('#missions').innerHTML = MISSIONS.map(m => {
+    const d = m.id in state.done;
+    return `<button type="button" class="m-card${d ? ' done' : ''}" data-id="${m.id}">
+      <span class="badge" aria-hidden="true">${d ? '✓' : '!'}</span>
+      <span class="txt"><span class="t">${m.t}</span><span class="s">${d ? `해결 +${state.done[m.id]}점` : m.s}</span></span></button>`;
+  }).join('');
+
+  const left = MISSIONS.length - n;
+  $('#bubble').innerHTML = !state.started ? '<b>동이</b> 노란 동그라미를 눌러 임무를 시작해!'
+    : left === 0 ? '<b>동이</b> 우리 마을이 완전히 바뀌었어! 고마워!'
+    : `<b>동이</b> 남은 임무 ${left}개! 노란 동그라미를 눌러 줘.`;
+}
+
+/* ---------- sheet helpers ---------- */
+const overlay = $('#overlay'), sheet = $('#sheet');
+let lastFocus = null;
+function openSheet(html){
+  lastFocus = document.activeElement;
+  sheet.innerHTML = html;
+  overlay.hidden = false;
+  const f = sheet.querySelector('[autofocus], button, input');
+  if (f) f.focus({ preventScroll:true });
+}
+function closeSheet(){ overlay.hidden = true; sheet.innerHTML = ''; if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll:true }); }
+function guide(title, text){
+  return `<div class="guide"><svg aria-hidden="true"><use href="#dongi"/></svg>
+    <div class="say"><h2 id="sheetTitle">${title}</h2><p id="sayText">${text}</p></div></div>`;
+}
+function setSay(t){ const e = $('#sayText'); if (e) e.innerHTML = t; }
+function flash(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+/* ---------- mission runner ---------- */
+function startMission(id){
+  if (!state.started) { showIntro(); return; }
+  const m = MISSIONS.find(x => x.id === id);
+  if (id in state.done) {
+    openSheet(guide(m.t, `이미 해결했어! <b>+${state.done[id]}점</b><br>${m.done}`) +
+      `<div class="row"><span></span><button class="btn" type="button" data-close>마을 보러 가기</button></div>`);
+    return;
+  }
+  openSheet(guide(m.t, m.say) + `<div class="stage" id="stage"></div>
+    <div class="row"><span class="muted" id="mist">실수 0번</span><button class="btn ghost" type="button" data-close>나중에 하기</button></div>`);
+  let mistakes = 0;
+  const api = {
+    stage: $('#stage'),
+    miss(msg){ mistakes++; $('#mist').textContent = `실수 ${mistakes}번`; tone('bad'); if (msg) setSay(msg); flash(sheet, 'shake'); },
+    ok(msg){ tone('good'); if (msg) setSay(msg); },
+    finish(){
+      const pts = Math.max(8, MAX_PER - mistakes * 2);
+      state.done[id] = pts;
+      if (Object.keys(state.done).length === MISSIONS.length && !state.t1) state.t1 = Date.now();
+      save(); tone('win');
+      sheet.innerHTML = guide(m.t, m.done) + `<div class="result"><div class="plus">+${pts}</div>
+        <h3>${mistakes === 0 ? '실수 없이 완벽해!' : `실수 ${mistakes}번 · 그래도 해냈어!`}</h3>
+        <p class="muted">창을 닫으면 마을이 바뀌는 모습을 볼 수 있어요.</p></div>
+        <div class="row"><span></span><button class="btn" type="button" data-close data-after="1" autofocus>마을 보러 가기</button></div>`;
+      sheet.querySelector('.btn').focus({ preventScroll:true });
+    }
+  };
+  GAMES[id](api);
+}
+
+const GAMES = {
+  river(api){
+    const trash = ['🥤','🧴','🛍️','🥫','👟','📦','🥡','🧴'];
+    const fish = ['🐟','🐟','🐠'];
+    const spots = shuffle([[12,22],[30,60],[50,25],[70,62],[88,24],[18,78],[42,82],[62,40],[84,80],[28,38],[76,44]]);
+    const items = shuffle(trash.map(e => ({ e, trash:true })).concat(fish.map(e => ({ e, trash:false }))));
+    api.stage.innerHTML = `<div class="row"><span class="counter" id="left">남은 쓰레기 ${trash.length}개</span></div><div class="pond" id="pond">${
+      items.map((it, i) => `<button type="button" class="it" data-t="${it.trash ? 1 : 0}" style="left:${spots[i][0]}%;top:${spots[i][1]}%" aria-label="${it.trash ? '쓰레기' : '물고기'}">${it.e}</button>`).join('')}</div>`;
+    let left = trash.length;
+    const pond = $('#pond');
+    pond.addEventListener('click', e => {
+      const b = e.target.closest('.it'); if (!b || b.classList.contains('gone')) return;
+      if (b.dataset.t === '1') {
+        b.classList.add('gone'); left--;
+        $('#left').textContent = `남은 쓰레기 ${left}개`;
+        const k = 1 - left / trash.length;
+        pond.style.background = `rgb(${Math.round(138 - 64 * k)},${Math.round(122 + 41 * k)},${Math.round(85 + 116 * k)})`;
+        api.ok(left > 3 ? '좋아! 계속 주워 줘.' : left > 0 ? '거의 다 왔어!' : '');
+        if (left === 0) setTimeout(api.finish, 500);
+      } else api.miss('앗, 그건 물고기야! 물고기는 살려 줘 🐟');
+    });
+  },
+
+  trash(api){
+    const BINS = [['plastic','플라스틱','#9fd3e6'],['paper','종이','#f7dc8a'],['can','캔·고철','#c9cfd4'],['vinyl','비닐','#b9e0a8']];
+    const ITEMS = shuffle([
+      { e:'🧴', n:'다 쓴 샴푸 통', h:'내용물을 비우고 헹궈서', b:'plastic' },
+      { e:'🥤', n:'일회용 플라스틱 컵', h:'빨대는 빼고 헹궈서', b:'plastic' },
+      { e:'📰', n:'신문지', h:'물에 젖지 않게 모아서', b:'paper' },
+      { e:'📦', n:'택배 상자', h:'테이프와 송장을 떼고 펴서', b:'paper' },
+      { e:'🥫', n:'통조림 캔', h:'안을 헹구고 찌그러뜨려서', b:'can' },
+      { e:'🛍️', n:'비닐봉지', h:'음식물이 묻었으면 씻어서', b:'vinyl' },
+    ]);
+    let i = 0;
+    api.stage.innerHTML = `<div class="counter" id="cnt"></div><div class="sort-item" id="item"></div>
+      <div class="bins-grid">${BINS.map(b => `<button type="button" class="bin" data-b="${b[0]}" style="background:${b[2]}">${b[1]}</button>`).join('')}</div>`;
+    const show = () => {
+      const it = ITEMS[i];
+      $('#cnt').textContent = `${i + 1} / ${ITEMS.length}`;
+      $('#item').innerHTML = `<span class="e">${it.e}</span><span class="n">${it.n}</span><span class="h">버릴 때: ${it.h}</span>`;
+    };
+    show();
+    api.stage.querySelector('.bins-grid').addEventListener('click', e => {
+      const b = e.target.closest('.bin'); if (!b || i >= ITEMS.length) return;
+      const it = ITEMS[i];
+      if (b.dataset.b === it.b) {
+        i++; api.ok(`딩동! ${it.n}은(는) ${b.textContent}!`);
+        if (i === ITEMS.length) setTimeout(api.finish, 450); else show();
+      } else api.miss(`음… ${it.n}은(는) ${b.textContent} 통이 아니야. 다시 골라 봐!`);
+    });
+  },
+
+  air(api){
+    const QS = [
+      { q:'마당에서 쓰레기를 태우면 금방 없어지니까 괜찮다.', a:false, why:'쓰레기를 태우면 몸에 해로운 연기와 물질이 나와요. 쓰레기를 함부로 태우는 것은 법으로 금지되어 있어요.' },
+      { q:'밭에서 쓰고 남은 폐비닐을 태우는 것도 공기를 더럽힌다.', a:true, why:'비닐을 태우면 검은 연기와 유해가스가 나와요. 폐비닐은 모아서 수거 장소에 내놓아야 해요.' },
+      { q:'나무와 숲은 공기를 맑게 하는 데 도움을 준다.', a:true, why:'나무는 이산화탄소를 흡수하고 산소를 내보내요. 잎은 먼지를 붙잡아 주기도 해요.' },
+    ];
+    let i = 0, locked = false;
+    const show = () => {
+      api.stage.innerHTML = `<div class="counter">${i + 1} / ${QS.length}</div><div class="q">${QS[i].q}</div>
+        <div class="ox"><button type="button" class="o" data-a="1" aria-label="O 맞다">O</button><button type="button" class="x" data-a="0" aria-label="X 아니다">X</button></div>
+        <div id="ex"></div>`;
+      locked = false;
+    };
+    show();
+    api.stage.addEventListener('click', e => {
+      const b = e.target.closest('.ox button');
+      if (b && !locked) {
+        const q = QS[i], right = (b.dataset.a === '1') === q.a;
+        locked = true;
+        right ? api.ok('정답이야!') : api.miss('아쉽다! 설명을 읽어 봐.');
+        $('#ex').innerHTML = `<div class="explain${right ? '' : ' bad'}"><b>정답: ${q.a ? 'O' : 'X'}</b> · ${q.why}</div>
+          <div class="row" style="margin-top:10px"><span></span><button type="button" class="btn" id="next">${i === QS.length - 1 ? '하늘 맑게 하기' : '다음 문제'}</button></div>`;
+        $('#next').focus({ preventScroll:true });
+      }
+      if (e.target.id === 'next') { i++; if (i === QS.length) api.finish(); else show(); }
+    });
+  },
+
+  forest(api){
+    const SPOTS = [[12,55],[30,72],[48,52],[66,74],[84,56],[40,88]];
+    const TREES = ['🌳','🌲','🍁','🌳','🌲','🍂'];
+    let left = SPOTS.length;
+    api.stage.innerHTML = `<div class="counter" id="left">심을 나무 ${left}그루</div><div class="field" id="field">${
+      SPOTS.map((p, i) => `<button type="button" class="spot" data-i="${i}" style="left:${p[0]}%;top:${p[1]}%" aria-label="빈 땅에 나무 심기"></button>`).join('')}</div>
+      <p class="muted">빈 땅을 누르면 나무가 자라요. 나무뿌리는 흙을 꽉 붙잡아 비가 많이 와도 흙이 쓸려 내려가지 않게 해 줘요.</p>`;
+    $('#field').addEventListener('click', e => {
+      const b = e.target.closest('.spot'); if (!b || b.classList.contains('planted')) return;
+      b.classList.add('planted'); b.textContent = '🌱'; left--;
+      setTimeout(() => { b.textContent = TREES[+b.dataset.i]; }, 380);
+      $('#left').textContent = left ? `심을 나무 ${left}그루` : '다 심었어!';
+      api.ok(left ? '쑥쑥 자란다!' : '');
+      if (!left) setTimeout(api.finish, 700);
+    });
+  },
+
+  energy(api){
+    const roof = on => `<svg viewBox="0 0 80 64"><path d="M4 30 L40 6 L76 30Z" fill="#b64a36" stroke="#213a38" stroke-width="2.5"/>
+      <rect x="12" y="30" width="56" height="30" fill="#f4ead6" stroke="#213a38" stroke-width="2.5"/>
+      ${on ? '<path d="M44 12 L66 27 L52 27 L32 14Z" fill="#274a78" stroke="#dfe9f5"/>' : '<circle cx="50" cy="20" r="7" fill="none" stroke="#c98f00" stroke-width="2.5" stroke-dasharray="4 3"/>'}</svg>`;
+    let roofs = 4;
+    api.stage.innerHTML = `<div class="counter" id="step">1단계 · 지붕을 눌러 태양광 패널 달기 (${roofs}개 남음)</div>
+      <div class="roofs" id="roofs">${[0,1,2,3].map(i => `<button type="button" class="roof" aria-label="지붕 ${i + 1}에 태양광 달기">${roof(false)}</button>`).join('')}</div><div id="step2"></div>`;
+    $('#roofs').addEventListener('click', e => {
+      const b = e.target.closest('.roof'); if (!b || b.dataset.on) return;
+      b.dataset.on = 1; b.innerHTML = roof(true); roofs--; api.ok(roofs ? '패널 설치 완료!' : '햇빛으로 전기를 만들 준비 끝! 이제 전기를 아끼는 습관 3개를 골라 줘.');
+      $('#step').textContent = roofs ? `1단계 · 지붕을 눌러 태양광 패널 달기 (${roofs}개 남음)` : '2단계 · 전기를 아끼는 좋은 습관 카드 3장 고르기';
+      if (!roofs) habits();
+    });
+    function habits(){
+      const C = shuffle([
+        { t:'쓰지 않는 전자제품 플러그 뽑기', g:true }, { t:'아무도 없는 교실 불 끄기', g:true }, { t:'여름 에어컨 온도를 26℃ 정도로 맞추기', g:true },
+        { t:'냉장고 문 열어 놓고 뭐 먹을지 고민하기', g:false }, { t:'아무도 안 보는 TV 켜 두기', g:false }, { t:'창문 열어 둔 채 난방 틀기', g:false },
+      ]);
+      let need = 3;
+      $('#roofs').remove();
+      $('#step2').innerHTML = `<div class="cards">${C.map(c => `<button type="button" class="card-pick" data-g="${c.g ? 1 : 0}">${c.t}</button>`).join('')}</div>`;
+      $('#step2').addEventListener('click', e => {
+        const b = e.target.closest('.card-pick'); if (!b || b.classList.contains('ok') || b.classList.contains('no')) return;
+        if (b.dataset.g === '1') { b.classList.add('ok'); need--; api.ok(need ? `좋은 습관! ${need}장 더.` : ''); if (!need) setTimeout(api.finish, 500); }
+        else { b.classList.add('no'); api.miss('그건 전기를 낭비하는 습관이야!'); }
+      });
+    }
+  },
+
+  traffic(api){
+    const QS = shuffle([
+      { q:'걸어서 15분 거리인 친구 집에 놀러 갈 때', a:'걷거나 자전거 타기', b:'부모님께 차로 태워 달라고 하기', why:'가까운 거리는 걷거나 자전거를 타면 매연이 전혀 나오지 않고 운동도 돼요.' },
+      { q:'친구 네 명이 같은 곳에 갈 때', a:'다 같이 버스 타기', b:'각자 부모님 차 타고 가기', why:'버스 한 대에 함께 타면 자동차 여러 대가 다닐 때보다 매연이 훨씬 줄어요.' },
+      { q:'차 안에서 잠깐 누구를 기다릴 때', a:'시동을 끄고 기다리기', b:'시동을 켜 둔 채 기다리기', why:'서 있는 차의 시동을 켜 두는 것을 공회전이라고 해요. 기름만 쓰고 매연을 내뿜어요.' },
+    ]);
+    let i = 0, locked = false;
+    const show = () => {
+      const q = QS[i], opts = shuffle([[q.a, 1], [q.b, 0]]);
+      api.stage.innerHTML = `<div class="counter">${i + 1} / ${QS.length}</div><div class="q">${q.q}, 어떻게 할까?</div>
+        <div class="choices">${opts.map(o => `<button type="button" data-a="${o[1]}">${o[0]}</button>`).join('')}</div><div id="ex"></div>`;
+      locked = false;
+    };
+    show();
+    api.stage.addEventListener('click', e => {
+      const b = e.target.closest('.choices button');
+      if (b && !locked) {
+        locked = true;
+        const right = b.dataset.a === '1', q = QS[i];
+        right ? api.ok('맞아, 그게 친환경 선택이야!') : api.miss('다른 쪽이 더 좋은 선택이야.');
+        $('#ex').innerHTML = `<div class="explain${right ? '' : ' bad'}"><b>${q.a}</b> · ${q.why}</div>
+          <div class="row" style="margin-top:10px"><span></span><button type="button" class="btn" id="next">${i === QS.length - 1 ? '길 바꾸기' : '다음 상황'}</button></div>`;
+        $('#next').focus({ preventScroll:true });
+      }
+      if (e.target.id === 'next') { i++; if (i === QS.length) api.finish(); else show(); }
+    });
+  },
+};
+
+/* ---------- intro & ending ---------- */
+function showIntro(){
+  openSheet(guide('안녕, 나는 동이야!', '신동읍에 사는 열네 살 중학생이야. 요즘 우리 마을 하천엔 쓰레기가 떠다니고, 하늘은 연기로 뿌옇고, 산은 나무가 베어져 휑해. <b>6가지 임무</b>를 해결해서 10년 뒤 신동읍을 바꿔 줄래?') +
+    `<div class="name-row"><label for="nameIn">구조대원 이름</label><input id="nameIn" maxlength="10" autocomplete="off" placeholder="이름을 적어 주세요" value="${esc(state.name)}"></div>
+     <p class="muted">임무마다 최고 16점, 실수하면 2점씩 줄어요. 6개를 모두 해결하면 보너스 4점!</p>
+     <div class="row"><span></span><button class="btn" type="button" id="goBtn">구조대 출동!</button></div>`);
+  const go = () => {
+    state.name = ($('#nameIn').value || '').trim().slice(0, 10);
+    state.started = true; state.t0 = state.t0 || Date.now();
+    save(); closeSheet(); render(); tone('good');
+  };
+  $('#goBtn').addEventListener('click', go);
+  $('#nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+}
+
+function fmt(ms){ const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
+
+function showEnding(){
+  const sc = total();
+  const rank = sc >= 95 ? '구조대 대장' : sc >= 80 ? '에이스 대원' : '든든한 대원';
+  const who = state.name ? `${esc(state.name)} 대원` : '구조대원';
+  openSheet(guide('10년 뒤 신동읍 완성!', `${who}, 고마워! 하천도, 하늘도, 산도 모두 살아났어. 이제 <b>가장 마음에 든 변화 1가지</b>를 골라서 활동지에 옮겨 적어 보자.`) +
+    `<div class="stats">
+       <div class="stat"><b>${sc}</b><span>마을 환경 점수</span></div>
+       <div class="stat"><b>${fmt((state.t1 || Date.now()) - state.t0)}</b><span>걸린 시간</span></div>
+       <div class="stat"><b style="font-size:22px;line-height:1.5">${rank}</b><span>나의 등급</span></div>
+     </div>
+     <div class="fav" id="fav">${MISSIONS.map(m => `<button type="button" data-id="${m.id}" aria-pressed="${state.fav === m.id}">${m.t}</button>`).join('')}</div>
+     <div id="wsOut"></div>
+     <div class="row"><button class="btn ghost" type="button" data-close>마을 다시 보기</button></div>`);
+  const draw = () => {
+    const m = MISSIONS.find(x => x.id === state.fav);
+    if (!m) { $('#wsOut').innerHTML = '<p class="muted">위에서 하나를 누르면 활동지에 쓸 문장이 나와요.</p>'; return; }
+    const style = STYLES[state.style];
+    const prompt = `${m.ws.where}, ${m.ws.how} 모습, ${style}`;
+    $('#wsOut').innerHTML = `
+      <div class="worksheet"><h3>활동지 1번 · 게임에서 찾은 우리 동네 문제</h3>
+        <div class="ws-row"><span>바꾸고 싶은 것</span><p>${m.ws.change}</p></div>
+        <div class="ws-row"><span>바뀌면 좋은 점</span><p>${m.ws.good}</p></div></div>
+      <div class="worksheet"><h3>활동지 2번 · 그림 만들기</h3>
+        <div class="ws-row"><span>어디를</span><p>${m.ws.where}</p></div>
+        <div class="ws-row"><span>어떻게</span><p>${m.ws.how}</p></div>
+        <div class="ws-row"><span>어떤 느낌</span><p><span class="styles" id="styles">${STYLES.map((s, i) => `<button type="button" data-s="${i}" aria-pressed="${i === state.style}">${s}</button>`).join('')}</span></p></div></div>
+      <div><p class="muted" style="margin:0 0 4px">세 칸을 이으면 그림 만드는 문장이 돼요. 내 생각대로 바꿔 써도 좋아요!</p>
+        <div class="prompt" id="promptTxt">${prompt}</div></div>
+      <div class="row"><span class="muted" id="copyMsg"></span><button class="btn" type="button" id="copyBtn">문장 복사하기</button></div>`;
+  };
+  draw();
+  sheet.addEventListener('click', function h(e){
+    if (!sheet.contains($('#fav'))) { sheet.removeEventListener('click', h); return; }
+    const f = e.target.closest('#fav button');
+    if (f) { state.fav = f.dataset.id; save(); $('#fav').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === f)); draw(); tone('good'); }
+    const s = e.target.closest('#styles button');
+    if (s) { state.style = +s.dataset.s; save(); draw(); }
+    if (e.target.id === 'copyBtn') {
+      const txt = $('#promptTxt').textContent;
+      const done = ok => { $('#copyMsg').textContent = ok ? '복사했어요! 이미지 AI 입력창에 붙여 넣으세요.' : '문장을 길게 눌러 직접 복사해 주세요.'; };
+      try {
+        navigator.clipboard.writeText(txt).then(() => done(true), () => { selectText(); done(false); });
+      } catch(err){ selectText(); done(false); }
+    }
+  });
+}
+function selectText(){ const r = document.createRange(); r.selectNodeContents($('#promptTxt')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+/* ---------- global events ---------- */
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-close]');
+  if (c) {
+    const after = c.dataset.after; closeSheet(); render();
+    if (after && Object.keys(state.done).length === MISSIONS.length) setTimeout(showEnding, 1600);
+    return;
+  }
+  const t = e.target.closest('.hs, .m-card');
+  if (t && overlay.hidden) startMission(t.dataset.id);
+});
+document.addEventListener('keydown', e => {
+  const t = e.target.closest && e.target.closest('.hs');
+  if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); startMission(t.dataset.id); }
+  if (e.key === 'Escape' && !overlay.hidden && state.started) { closeSheet(); render(); }
+});
+$('#soundBtn').addEventListener('click', () => {
+  state.sound = !state.sound; save();
+  $('#soundBtn').textContent = state.sound ? '소리 켬' : '소리 끔';
+  $('#soundBtn').setAttribute('aria-pressed', state.sound);
+  tone('good');
+});
+let resetArm = null;
+$('#resetBtn').addEventListener('click', () => {
+  const b = $('#resetBtn');
+  if (!resetArm) {
+    b.textContent = '한 번 더 누르면 초기화'; b.classList.add('warn');
+    resetArm = setTimeout(() => { resetArm = null; b.textContent = '처음부터'; b.classList.remove('warn'); }, 3000);
+    return;
+  }
+  clearTimeout(resetArm); resetArm = null; b.textContent = '처음부터'; b.classList.remove('warn');
+  const snd = state.sound;
+  state = { name:'', started:false, t0:0, t1:0, done:{}, fav:null, style:0, sound:snd };
+  save(); closeSheet(); render(); showIntro();
+});
+
+function start(d){
+  load(d);
+  $('#soundBtn').textContent = state.sound ? '소리 켬' : '소리 끔';
+  $('#soundBtn').setAttribute('aria-pressed', state.sound);
+  render();
+  if (!state.started) showIntro();
+  else if (Object.keys(state.done).length === MISSIONS.length) showEnding();
+}
+window.claude?.hot?.snapshot?.(() => state);
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? null);
+})();
+</script>
